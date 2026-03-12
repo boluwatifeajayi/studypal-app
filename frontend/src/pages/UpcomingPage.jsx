@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../utils/api.js';
+import toast from 'react-hot-toast';
 
 const DiffBadge = ({ d }) => <span className={`badge badge-${d}`}>{d}</span>;
 
@@ -29,8 +30,15 @@ export default function UpcomingPage() {
   }, []);
 
   const toggle = async (id) => {
-    const updated = await api.patch(`/sessions/${id}/toggle`, {});
-    setSessions(sessions.map(s => s.id === id ? { ...s, completed: updated.completed } : s));
+    try {
+      const updated = await api.patch(`/sessions/${id}/toggle`, {});
+      setSessions(sessions.map(s => s.id === id ? { ...s, completed: updated.completed } : s));
+      if (updated.completed) {
+        toast.success('Session completed!');
+      }
+    } catch (err) {
+      toast.error('Failed to update session');
+    }
   };
 
   if (loading) return <div className="empty"><div className="empty-icon">⏳</div></div>;

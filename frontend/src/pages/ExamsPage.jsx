@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../utils/api.js';
+import toast from 'react-hot-toast';
 
 const DiffBadge = ({ d }) => <span className={`badge badge-${d}`}>{d}</span>;
 const daysUntil = (dateStr) => Math.ceil((new Date(dateStr + 'T00:00') - new Date().setHours(0,0,0,0)) / 86400000);
@@ -23,9 +24,11 @@ function AddExamModal({ onClose, onCreated }) {
       const validSubs = subjects.filter(s => s.name.trim());
       const exam = await api.post('/exams', { name, examDate, subjects: validSubs });
       onCreated(exam);
+      toast.success('Exam created successfully!');
       onClose();
     } catch (err) {
       setError(err.message);
+      toast.error(err.message || 'Failed to create exam');
     } finally {
       setLoading(false);
     }
@@ -90,9 +93,11 @@ function AddSubjectModal({ exam, onClose, onAdded }) {
     try {
       const sub = await api.post(`/exams/${exam.id}/subjects`, { name, difficulty });
       onAdded(sub);
+      toast.success('Subject added!');
       onClose();
     } catch (err) {
       setError(err.message);
+      toast.error(err.message || 'Failed to add subject');
     } finally {
       setLoading(false);
     }
@@ -136,14 +141,24 @@ export default function ExamsPage() {
 
   const deleteExam = async (id) => {
     if (!confirm('Delete this exam and all its study sessions?')) return;
-    await api.delete(`/exams/${id}`);
-    setExams(exams.filter(e => e.id !== id));
+    try {
+      await api.delete(`/exams/${id}`);
+      setExams(exams.filter(e => e.id !== id));
+      toast.success('Exam deleted');
+    } catch (err) {
+      toast.error('Failed to delete exam');
+    }
   };
 
   const deleteSubject = async (examId, subjectId) => {
     if (!confirm('Delete this subject?')) return;
-    await api.delete(`/exams/${examId}/subjects/${subjectId}`);
-    setExams(exams.map(e => e.id === examId ? { ...e, Subjects: e.Subjects.filter(s => s.id !== subjectId) } : e));
+    try {
+      await api.delete(`/exams/${examId}/subjects/${subjectId}`);
+      setExams(exams.map(e => e.id === examId ? { ...e, Subjects: e.Subjects.filter(s => s.id !== subjectId) } : e));
+      toast.success('Subject deleted');
+    } catch (err) {
+      toast.error('Failed to delete subject');
+    }
   };
 
   if (loading) return <div className="empty"><div className="empty-icon">⏳</div></div>;

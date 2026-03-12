@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api } from '../utils/api.js';
+import toast from 'react-hot-toast';
 
 const DiffBadge = ({ d }) => <span className={`badge badge-${d}`}>{d}</span>;
 
@@ -17,12 +18,19 @@ export default function DashboardPage() {
   }, []);
 
   const toggle = async (id) => {
-    const updated = await api.patch(`/sessions/${id}/toggle`, {});
-    setSessions(sessions.map(s => s.id === id ? { ...s, completed: updated.completed } : s));
-    setStats(prev => {
-      const diff = updated.completed ? 1 : -1;
-      return { ...prev, completed: prev.completed + diff, todayDone: prev.todayDone + diff };
-    });
+    try {
+      const updated = await api.patch(`/sessions/${id}/toggle`, {});
+      setSessions(sessions.map(s => s.id === id ? { ...s, completed: updated.completed } : s));
+      setStats(prev => {
+        const diff = updated.completed ? 1 : -1;
+        return { ...prev, completed: prev.completed + diff, todayDone: prev.todayDone + diff };
+      });
+      if (updated.completed) {
+        toast.success('Session completed! Great job 🎉');
+      }
+    } catch (err) {
+      toast.error('Failed to update session');
+    }
   };
 
   if (loading) return <div className="empty"><div className="empty-icon">⏳</div><p className="empty-text">Loading…</p></div>;

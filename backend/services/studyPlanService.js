@@ -4,7 +4,7 @@ const DIFFICULTY_WEIGHT = { easy: 1, medium: 2, hard: 3 };
 const MAX_SESSIONS_PER_DAY = 3;
 
 // Generate a study plan for an exam.
-export const generateStudyPlan = async (exam, subjects) => {
+export const generateStudyPlan = async (exam, subjects, transaction = null) => {
   if (!subjects || subjects.length === 0) return;
 
   const today = new Date();
@@ -34,7 +34,7 @@ export const generateStudyPlan = async (exam, subjects) => {
   const sessionQueue = buildSessionQueue(subjectSessions, daysAvailable, today);
 
   // Delete old sessions for this exam then bulk insert
-  await StudySession.destroy({ where: { examId: exam.id } });
+  await StudySession.destroy({ where: { examId: exam.id }, transaction });
 
   const rows = sessionQueue.map(({ date, subject }) => ({
     date: formatDate(date),
@@ -44,7 +44,7 @@ export const generateStudyPlan = async (exam, subjects) => {
     completed: false,
   }));
 
-  await StudySession.bulkCreate(rows);
+  await StudySession.bulkCreate(rows, { transaction });
 };
 
 function buildSessionQueue(subjectSessions, daysAvailable, startDate) {

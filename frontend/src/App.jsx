@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { BrowserRouter, Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { useAuth } from './hooks/useAuth.js';
 import { AuthProvider } from './context/AuthProvider.jsx';
 import AuthPage from './pages/AuthPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import ExamsPage from './pages/ExamsPage.jsx';
 import UpcomingPage from './pages/UpcomingPage.jsx';
-
 
 function Nav() {
   const { user, logout } = useAuth();
@@ -20,9 +20,18 @@ function Nav() {
   );
 }
 
-function App() {
+function TabNav() {
+  return (
+    <div className="tab-nav">
+      <NavLink to="/today" className={({ isActive }) => `tab ${isActive ? 'active' : ''}`}>Today</NavLink>
+      <NavLink to="/upcoming" className={({ isActive }) => `tab ${isActive ? 'active' : ''}`}>Upcoming</NavLink>
+      <NavLink to="/exams" className={({ isActive }) => `tab ${isActive ? 'active' : ''}`}>My Exams</NavLink>
+    </div>
+  );
+}
+
+function AppContent() {
   const { user, loading } = useAuth();
-  const [tab, setTab] = useState('today');
 
   if (loading) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -37,21 +46,28 @@ function App() {
 
   return (
     <div className="layout">
-      <Nav tab={tab} setTab={setTab} />
+      <Nav />
       <main className="main">
-        <div className="tab-nav">
-          <button className={`tab ${tab === 'today' ? 'active' : ''}`} onClick={() => setTab('today')}>Today</button>
-          <button className={`tab ${tab === 'upcoming' ? 'active' : ''}`} onClick={() => setTab('upcoming')}>Upcoming</button>
-          <button className={`tab ${tab === 'exams' ? 'active' : ''}`} onClick={() => setTab('exams')}>My Exams</button>
-        </div>
-        {tab === 'today' && <DashboardPage />}
-        {tab === 'upcoming' && <UpcomingPage />}
-        {tab === 'exams' && <ExamsPage />}
+        <TabNav />
+        <Routes>
+          <Route path="/" element={<Navigate to="/today" replace />} />
+          <Route path="/today" element={<DashboardPage />} />
+          <Route path="/upcoming" element={<UpcomingPage />} />
+          <Route path="/exams" element={<ExamsPage />} />
+          <Route path="*" element={<Navigate to="/today" replace />} />
+        </Routes>
       </main>
     </div>
   );
 }
 
 export default function Root() {
-  return <AuthProvider><App /></AuthProvider>;
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Toaster position="top-right" />
+        <AppContent />
+      </AuthProvider>
+    </BrowserRouter>
+  );
 }

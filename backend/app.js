@@ -22,9 +22,20 @@ const PORT = process.env.PORT || 3001;
 
 
 // Middleware
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'https://studypal-app.vercel.app',
+  'http://localhost:3000'
+].filter(Boolean);
+
 app.use(cors({
-  origin: 'https://studypal-app.vercel.app',
-  //  origin: 'http://localhost:3000',
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 
