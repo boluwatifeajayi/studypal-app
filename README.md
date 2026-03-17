@@ -91,6 +91,26 @@ studypal/
 - Node.js 18+
 - PostgreSQL running locally (or a hosted instance)
 
+### Local PostgreSQL (macOS with Homebrew)
+
+If you use Homebrew PostgreSQL, the default role is your **macOS username**, not `postgres`.
+
+1. **Install and start PostgreSQL** (if needed):
+   ```bash
+   brew install postgresql@17
+   brew services start postgresql@17
+   ```
+
+2. **Create the database**:
+   ```bash
+   createdb studybuddy
+   ```
+
+3. In `backend/.env`, leave `DATABASE_URL` commented out (or unset) and set:
+   - `DB_USER=` your macOS username (e.g. `boluwatifeajayi`)
+   - `DB_PASSWORD=` (empty)
+   - `DB_NAME=studybuddy`
+
 ### 1. Clone the repo
 
 ```bash
@@ -264,3 +284,24 @@ When you create an exam with subjects:
 5. Click the circle next to a session to mark it complete 
 6. Check **"Upcoming"** to see your full schedule
 7. Receive a **daily email at 8 AM** with that day's sessions (once SMTP is configured)
+
+---
+
+## 10-step guide: test the app from start to finish
+
+Use this flow to test StudyPal from first launch to last feature.
+
+| Step | What to do | What you’re testing |
+|------|------------|---------------------|
+| **1** | **Start backend and frontend** — In one terminal: `cd backend && npm run dev`. In another: `cd frontend && npm run dev`. Open **http://localhost:3000** in your browser. | Servers run; app loads. |
+| **2** | **Create an account** — On the auth screen, click “Sign up”, enter your name, email, and a password (min 6 characters). Click **Create Account**. | Registration; you’re logged in and see the main app. |
+| **3** | **Open My Exams** — Click the **My Exams** tab. You should see “No exams yet” and a **+ New Exam** button. | Navigation; empty exams list. |
+| **4** | **Add your first exam** — Click **+ New Exam**. Enter an exam name (e.g. “Math Final”) and pick a **future date** (e.g. 2 weeks from today). Add at least 2–3 subjects with different difficulties (e.g. Algebra – Easy, Calculus – Hard). Click **Create Exam**. | Exam + subjects creation; study plan is generated. |
+| **5** | **Check Today’s plan** — Click the **Today** tab. You should see today’s date, stats (Today’s Sessions, Completed Today, etc.), and a list of sessions (exam + subject + difficulty). If the exam is far away, you might see 0 sessions today; then pick an exam date closer (e.g. 5–7 days away) and create another exam to get sessions today. | Today’s dashboard; stats; session list. |
+| **6** | **Mark sessions complete** — On **Today**, click the **circle** next to a session. It should turn into a checkmark, the session text should strike through, and you should see a “Session completed!” toast. Do this for one or two sessions. | Toggle completion; UI and stats update. |
+| **7** | **View Upcoming** — Click the **Upcoming** tab. You should see sessions for the next 30 days, grouped by date. Confirm today’s sessions appear and completed ones are shown as done. | Upcoming schedule; date grouping. |
+| **8** | **Add a subject to an exam** — Go to **My Exams**, find an exam, click **+ Subject**. Add a name and difficulty, then **Add Subject**. The study plan should regenerate (you may see more sessions on Today/Upcoming). | Add subject; plan regeneration. |
+| **9** | **Delete a subject or exam** — On **My Exams**, use the **✕** next to a subject to remove it (confirm when asked). Optionally delete an entire exam with the 🗑️ button (confirm). List and plan should update. | Delete subject/exam; data and plan consistency. |
+| **10** | **Sign out and sign back in** — Click **Sign out** (top right). You should see the login screen. Sign in with the same email and password. You should see your exams and sessions again. (Optional: trigger daily reminders via `POST /api/cron/trigger-reminders` with your auth token if you’ve set up SMTP.) | Logout; login; session persistence. |
+
+**Quick tip:** To see sessions **today**, use an exam date that’s soon (e.g. 5–10 days from now). The app spreads sessions from today until the exam date (max 3 per day), so a near-future exam gives you sessions on the current day.

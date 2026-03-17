@@ -14,9 +14,12 @@ const handle = async (res) => {
   return data;
 };
 
+const healthBase = BASE.replace(/\/api\/?$/, '');
+
 export const api = {
   post: (path, body) => fetch(`${BASE}${path}`, { method: 'POST', headers: headers(), body: JSON.stringify(body) }).then(handle),
   get: (path) => fetch(`${BASE}${path}`, { headers: headers() }).then(handle),
   patch: (path, body) => fetch(`${BASE}${path}`, { method: 'PATCH', headers: headers(), body: JSON.stringify(body) }).then(handle),
   delete: (path) => fetch(`${BASE}${path}`, { method: 'DELETE', headers: headers() }).then(handle),
+  health: () => fetch(`${healthBase}/api/health`).then((r) => r.ok ? r.json() : Promise.reject(new Error('Unhealthy'))),
 };

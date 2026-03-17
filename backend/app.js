@@ -49,9 +49,23 @@ app.use('/api/cron', cronRoutes);
 
 
 
-// Health Check
-app.get("/api/health", (req, res) => {
-    res.json({status: "Ok", timestamp: new Date().toISOString()})
+// Health check (DB status, uptime, version for monitoring / real-world readiness)
+const startTime = Date.now();
+app.get('/api/health', async (req, res) => {
+  let dbStatus = 'unknown';
+  try {
+    await sequelize.authenticate();
+    dbStatus = 'connected';
+  } catch {
+    dbStatus = 'disconnected';
+  }
+  res.json({
+    status: dbStatus === 'connected' ? 'ok' : 'degraded',
+    timestamp: new Date().toISOString(),
+    uptimeSeconds: Math.floor((Date.now() - startTime) / 1000),
+    database: dbStatus,
+    version: process.env.npm_package_version || '1.0.0',
+  });
 });
 
 // Start server
@@ -59,7 +73,7 @@ const start = async () => {
   try {
     await sequelize.authenticate();
     console.log('Database connected');
-    await sequelize.sync({ alter: true });
+    await sequelize.sync({ alter: process.env.NODE_ENV === 'development' });
     console.log('Database synced');
     startCronJobs();
     app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

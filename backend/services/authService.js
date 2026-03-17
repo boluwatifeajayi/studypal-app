@@ -23,4 +23,4 @@ export const login = async ({ email, password }) => {
 const generateToken = (userId) =>
   jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
 
-const sanitize = (user) => ({ id: user.id, name: user.name, email: user.email });
+const sanitize = (user) => ({ id: user.id, name: user.name, email: user.email, reminderEnabled: user.reminderEnabled ?? true });

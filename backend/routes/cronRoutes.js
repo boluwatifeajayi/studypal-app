@@ -1,10 +1,11 @@
 // routes/cronRoutes.js
 import express from 'express';
 import { sendReminders } from '../services/cronService.js';
+import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.post('/trigger-reminders', async (req, res) => {
+router.post('/trigger-reminders', authenticate, async (req, res) => {
   try {
     await sendReminders();
     res.status(200).send('Reminders sent successfully');
